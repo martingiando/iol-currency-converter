@@ -25,5 +25,6 @@ export function useCurrencies() {
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
+    refetch: query.refetch,
   }
 }

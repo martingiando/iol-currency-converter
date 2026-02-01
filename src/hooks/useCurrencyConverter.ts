@@ -14,7 +14,7 @@ export function useCurrencyConverter(
   const [fromCurrency, setFromCurrency] = useState<string>(defaultFrom)
   const [toCurrency, setToCurrency] = useState<string>(defaultTo)
 
-  const { data: ratesData } = useExchangeRates(fromCurrency)
+  const { data: ratesData, isError, refetch } = useExchangeRates(fromCurrency)
 
   const rate = useMemo(() => {
     if (!ratesData?.rates || !(toCurrency in ratesData.rates)) return null
@@ -60,5 +60,7 @@ export function useCurrencyConverter(
     formattedInverseRate,
     ratesDate: ratesData?.date ?? null,
     isLoading: !ratesData,
+    isError,
+    retryRates: refetch,
   }
 }

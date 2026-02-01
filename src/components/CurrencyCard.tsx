@@ -3,6 +3,8 @@ import { AmountInput } from '@/components/AmountInput'
 import { CurrencySelect } from './CurrencySelect'
 import { SwapButton } from '@/components/SwapButton'
 import { ConversionResult } from '@/components/ConversionResult'
+import { CurrencyCardSkeleton } from '@/components/CurrencyCardSkeleton'
+import { ErrorAlert } from '@/components/ErrorAlert'
 import { InfoBox } from '@/components/InfoBox'
 import { DEFAULT_FROM_CURRENCY, DEFAULT_TO_CURRENCY } from '@/constants/currency'
 import { useCurrencies } from '@/hooks/useCurrencies'
@@ -10,7 +12,12 @@ import { useCurrencyConverter } from '@/hooks/useCurrencyConverter'
 import { formatLastUpdated } from '@/utils/formatters'
 
 function CurrencyCardComponent() {
-  const { currencies, isLoading: currenciesLoading } = useCurrencies()
+  const {
+    currencies,
+    isLoading: currenciesLoading,
+    isError: currenciesError,
+    refetch: retryCurrencies,
+  } = useCurrencies()
   const {
     amount,
     setAmount,
@@ -23,7 +30,34 @@ function CurrencyCardComponent() {
     formattedInverseRate,
     ratesDate,
     isLoading: ratesLoading,
+    isError: ratesError,
+    retryRates,
   } = useCurrencyConverter(DEFAULT_FROM_CURRENCY, DEFAULT_TO_CURRENCY)
+
+  if (currenciesLoading) {
+    return <CurrencyCardSkeleton />
+  }
+
+  if (currenciesError) {
+    return (
+      <>
+        <section className="bg-primary py-12 pb-24">
+          <h2 className="mx-auto max-w-4xl px-4 text-center text-2xl font-bold text-white">
+            Currency Converter
+          </h2>
+        </section>
+        <main className="mx-auto max-w-4xl px-4 -mt-12">
+          <div className="rounded-xl border border-gray-200 bg-surface p-6 shadow-lg">
+            <ErrorAlert
+              title="Failed to load currencies"
+              message="Unable to fetch the currency list. Please check your connection and try again."
+              onRetry={retryCurrencies}
+            />
+          </div>
+        </main>
+      </>
+    )
+  }
 
   const fromCurrencyData = currencies.find((c) => c.code === fromCurrency)
   const toCurrencyData = currencies.find((c) => c.code === toCurrency)
@@ -75,14 +109,22 @@ function CurrencyCardComponent() {
           </div>
 
           <div className="mt-16 grid gap-6 sm:grid-cols-2">
-            <ConversionResult
-              amount={amount}
-              fromCurrency={fromCurrencyData}
-              toCurrency={toCurrencyData}
-              convertedAmount={formattedConverted}
-              inverseRate={formattedInverseRate}
-              isLoading={ratesLoading}
-            />
+            {ratesError ? (
+              <ErrorAlert
+                title="Exchange rates unavailable"
+                message="Could not fetch current exchange rates. Please try again."
+                onRetry={retryRates}
+              />
+            ) : (
+              <ConversionResult
+                amount={amount}
+                fromCurrency={fromCurrencyData}
+                toCurrency={toCurrencyData}
+                convertedAmount={formattedConverted}
+                inverseRate={formattedInverseRate}
+                isLoading={ratesLoading}
+              />
+            )}
             <div className="flex flex-col gap-4">
               <InfoBox />
               {lastUpdatedText && (

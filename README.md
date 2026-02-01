@@ -26,6 +26,8 @@ npm run preview
 - **Pixel-accurate UI:** Header, violet banner, white card, amount input with dynamic currency symbol, dropdowns, swap icon button, conversion result (6 decimals), inverse rate, disclaimer box, and last-updated line.
 - **Debounced input:** 300 ms debounce on amount input to optimize performance while typing.
 - **Smart caching:** Currencies cached permanently; rates cached for 5 minutes.
+- **Error handling:** If the API fails (currencies or exchange rates), the app shows a clear error message and a "Try again" button that calls React Query's `refetch()` without reloading the page.
+- **Skeleton loaders:** While data is loading, skeleton placeholders mimic the final layout (banner, inputs, swap button, result) instead of plain text.
 
 ## Tech Stack
 
@@ -52,6 +54,7 @@ Handles all API calls with automatic caching, background refetching, and error h
 - Exchange rates are cached for 5 minutes
 - Changing the "To" currency doesn't trigger a new API call (uses cached rates)
 - Automatic retry logic on failures
+- Exposed `refetch` in hooks so the UI can offer a "Try again" button on API errors
 
 ## Technical Decisions
 
@@ -93,7 +96,26 @@ The amount input shows a currency symbol based on the "From" currency (e.g., "$"
 - Converted result shows up to 6 decimals for precision
 - Inverse rate displayed to help users understand the exchange rate both ways
 
-### 6. Constants for Default Values
+### 6. Error Handling and Refetch
+
+When the API fails (currencies or exchange rates), the app does not crash. Instead:
+
+- **Currencies error:** The card shows an `ErrorAlert` with a message and a "Try again" button. The button calls `refetch()` from `useCurrencies`, which React Query exposes. No page reload.
+- **Rates error:** Only the conversion result area shows an `ErrorAlert` with "Try again"; the rest of the form (amount, dropdowns, swap) stays usable. The button calls `refetch()` from `useExchangeRates` (exposed as `retryRates` by `useCurrencyConverter`).
+
+Both hooks (`useCurrencies`, `useExchangeRates`) return `refetch` so the UI can trigger a retry on demand. Error states are derived from React Query's `isError` and rendered via the reusable `ErrorAlert` component (title, message, optional `onRetry`).
+
+### 7. Skeleton Loaders
+
+While data is loading, the app shows skeleton placeholders instead of "Loading…" text:
+
+- **CurrencyCardSkeleton:** Full loading state when currencies are being fetched (banner + card with skeleton inputs and result). Used as a separate component so `CurrencyCard` stays simple.
+- **SkeletonResult:** Used inside `ConversionResult` when rates are loading (replaces the conversion result block).
+- **Skeleton** and **SkeletonInput:** Base building blocks (animated with Tailwind's `animate-pulse`).
+
+This improves perceived performance and keeps the layout stable during loading.
+
+### 8. Constants for Default Values
 
 Instead of hardcoding `'USD'` and `'EUR'` throughout the codebase, default currencies are defined in `src/constants/currency.ts`:
 
@@ -109,11 +131,16 @@ src/
   components/        Presentational UI components
     Header.tsx
     CurrencyCard.tsx
+    CurrencyCardSkeleton.tsx
     AmountInput.tsx
     CurrencySelect.tsx
     SwapButton.tsx
     ConversionResult.tsx
+    ErrorAlert.tsx
     InfoBox.tsx
+    Skeleton.tsx
+    SkeletonInput.tsx
+    SkeletonResult.tsx
   hooks/             Custom hooks with business logic
     useCurrencies.ts
     useExchangeRates.ts
@@ -135,9 +162,12 @@ src/
 ### Component Responsibilities
 
 - **Header:** Static app title
-- **CurrencyCard:** Main container; orchestrates all sub-components
+- **CurrencyCard:** Main container; orchestrates all sub-components; shows `CurrencyCardSkeleton` when currencies load, `ErrorAlert` on API errors, or the form and result
+- **CurrencyCardSkeleton:** Full loading state (banner + card with skeleton inputs and result) while currencies are fetched
 - **AmountInput:** Controlled input with debounce, validation, and dynamic symbol
 - **CurrencySelect:** Dropdown for selecting currencies
 - **SwapButton:** Button to swap "From" and "To" currencies
-- **ConversionResult:** Displays conversion result and inverse rate
+- **ConversionResult:** Displays conversion result and inverse rate; shows `SkeletonResult` while rates load
+- **ErrorAlert:** Reusable error message with optional "Try again" button (uses centralized `.btn-error` in CSS)
 - **InfoBox:** Disclaimer about mid-market rates
+- **Skeleton, SkeletonInput, SkeletonResult:** Reusable skeleton placeholders for loading states

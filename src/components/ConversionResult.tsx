@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { SkeletonResult } from '@/components/SkeletonResult'
 import { formatAmount } from '@/utils/formatters'
 import type { Currency } from '@/types/currency.types'
 
@@ -26,11 +27,7 @@ export const ConversionResult = memo(({
   const fromCode = fromCurrency?.code ?? ''
 
   if (isLoading) {
-    return (
-      <div className="text-text-secondary text-sm">
-        Loading rates…
-      </div>
-    )
+    return <SkeletonResult />
   }
 
   return (
