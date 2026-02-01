@@ -35,10 +35,10 @@ export const ConversionResult = memo(({
 
   return (
     <div className="flex flex-col gap-1">
-      <p className="text-xl font-semibold text-text-primary">
+      <p className="text-3xl font-semibold text-text-primary">
         {displayAmount} {fromName} =
       </p>
-      <p className="text-xl font-semibold text-text-primary">
+      <p className="text-3xl font-semibold text-text-primary">
         {convertedAmount ?? '—'} {toName}
       </p>
       {inverseRate !== null && (

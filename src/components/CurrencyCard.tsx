@@ -44,7 +44,7 @@ function CurrencyCardComponent() {
         </h2>
       </section>
 
-      <main className="mx-auto max-w-4xl px-4 -mt-16">
+      <main className="mx-auto max-w-5xl px-4 -mt-16">
         <div className="rounded-xl border border-gray-200 bg-surface p-6 shadow-lg">
           <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto_1fr] sm:items-end">
             <AmountInput
@@ -74,7 +74,7 @@ function CurrencyCardComponent() {
             />
           </div>
 
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+          <div className="mt-16 grid gap-6 sm:grid-cols-2">
             <ConversionResult
               amount={amount}
               fromCurrency={fromCurrencyData}
